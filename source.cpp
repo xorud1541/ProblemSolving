@@ -7,62 +7,57 @@ using namespace std;
 int solution(string s) {
 	int answer = 0;
 
+	if (s.size() == 1)
+		return 1;
+
 	for (int bundle = 1; bundle <= s.size() / 2; bundle++)
 	{
-		int index = 0;
-		int cntPattern = 1;
-		string ret;
 		string pattern;
-
-		while (index < s.size())
+		string ret;
+		int curStep = 0;
+		int cntPatterns = 1;
+		while (1)
 		{
 			if (pattern.empty())
 			{
-				//set pattern
-				pattern = s.substr(index, bundle);
-				cntPattern = 1;
-				if (index + bundle >= s.size())
+				int nextStep = curStep + bundle;
+				pattern = s.substr(curStep, bundle);
+				if (nextStep >= s.size())
 				{
 					ret += pattern;
-
-					int cnt = s.size() - index - 1;
-					ret += s.substr(index, cnt);
-
-					pattern.clear();
+					break;
 				}
 				else
 				{
-					index += bundle;
+					cntPatterns = 1;
+					curStep = nextStep;
 				}
-				continue;
 			}
 			else
 			{
-				//compare with pattern
-				string temp = s.substr(index, bundle);
+				string temp = s.substr(curStep, bundle);
 				if (temp == pattern)
 				{
-					cntPattern++;
-					if (index + bundle >= s.size())
+					cntPatterns++;
+					int nextStep = curStep + bundle;
+					if (nextStep >= s.size())
 					{
-						ret += to_string(cntPattern) + pattern;
-
-						int cnt = s.size() - index - 1;
-						ret += s.substr(index, cnt);
-
+						if (cntPatterns == 1)
+							ret += pattern;
+						else
+							ret += to_string(cntPatterns) + pattern;
 						pattern.clear();
+						break;
 					}
 					else
-					{
-						index += bundle;
-					}
+						curStep += bundle;
 				}
 				else
 				{
-					if (cntPattern != 1)
-						ret += to_string(cntPattern) + pattern;
-					else
+					if (cntPatterns == 1)
 						ret += pattern;
+					else
+						ret += to_string(cntPatterns) + pattern;
 					pattern.clear();
 				}
 			}
@@ -75,14 +70,12 @@ int solution(string s) {
 			if (answer > ret.size())
 				answer = ret.size();
 		}
-
-		ret.clear();
 	}
 	return answer;
 }
 
 int main()
 {
-	cout << solution("aabbaccc") << endl;
+	cout << solution("abcabcdede") << endl;
 	return 0;
 }
