@@ -1,81 +1,157 @@
-#include <iostream>
 #include <string>
 #include <vector>
+#include <iostream>
 
 using namespace std;
 
-int solution(string s) {
-	int answer = 0;
+typedef struct _mInfo
+{
+	string start;
+	string end;
+	string song;
+	string notes;
+} mInfo;
 
-	if (s.size() == 1)
-		return 1;
-
-	for (int bundle = 1; bundle <= s.size() / 2; bundle++)
+mInfo parser(string musicinfo)
+{
+	mInfo info;
+	vector<string> elements;
+	string temp;
+	for (int i = 0; i < musicinfo.size(); i++)
 	{
-		string pattern;
-		string ret;
-		int curStep = 0;
-		int cntPatterns = 1;
-		while (1)
+		char c = musicinfo[i];
+		if (c == ',')
 		{
-			if (pattern.empty())
+			elements.push_back(temp);
+			temp.clear();
+		}
+		else
+		{
+			temp += c;
+		}
+	}
+	
+	if (!temp.empty())
+		elements.push_back(temp);
+
+	info.start = elements[0]; // 0 : 시작시각
+	info.end = elements[1];   // 1 : 끝나는시각
+	info.song = elements[2];  // 2 : 노래제목
+	info.notes = elements[3]; // 3 : 음표들
+
+	return info;
+}
+
+int toMin(string time)
+{
+	string hour = time.substr(0, 2);
+	string min = time.substr(3, 2);
+
+	return atoi(hour.c_str()) * 60 + atoi(min.c_str());
+}
+
+string makeSong(const mInfo& info)
+{
+	int runTime = toMin(info.end) - toMin(info.start);
+
+	vector<string> notes;
+	string temp;
+	for (int i = 0; i < info.notes.size(); i++)
+	{
+		char c = info.notes[i];
+		if (c == '#')
+		{
+			temp += c;
+
+			notes.push_back(temp);
+			temp.clear();
+		}
+		else
+		{
+			if (temp.empty())
 			{
-				int nextStep = curStep + bundle;
-				pattern = s.substr(curStep, bundle);
-				if (nextStep >= s.size())
-				{
-					ret += pattern;
-					break;
-				}
-				else
-				{
-					cntPatterns = 1;
-					curStep = nextStep;
-				}
+				temp += c;
 			}
 			else
 			{
-				string temp = s.substr(curStep, bundle);
-				if (temp == pattern)
+				notes.push_back(temp);
+				temp.clear();
+
+				temp += c;
+			}
+		}
+	}
+
+	if (!temp.empty())
+		notes.push_back(temp);
+
+	string ret;
+	for (int i = 0; i < runTime; i++)
+	{
+		int index = i % notes.size();
+
+		ret += notes[index];
+	}
+
+	return ret;
+}
+
+bool hasPattern(const string& pattern, const string& alSong)
+{
+	int i = 0;
+	while (1)
+	{
+
+	}
+}
+
+string solution(string m, vector<string> musicinfos) 
+{
+	string answer = "";
+	int runTimeOfAnswer = 0;
+
+	for (string musicinfo : musicinfos)
+	{
+		mInfo info = parser(musicinfo);
+
+		string alSong = makeSong(info); // info 로 노래를 만든
+
+		if (hasPattern(m, alSong))
+		{
+			if (answer.empty())
+			{
+				answer = info.song;
+				runTimeOfAnswer = toMin(info.end) - toMin(info.start);
+			}
+			else
+			{
+				int runTime = toMin(info.end) - toMin(info.start);
+				if (runTime > runTimeOfAnswer)
 				{
-					cntPatterns++;
-					int nextStep = curStep + bundle;
-					if (nextStep >= s.size())
-					{
-						if (cntPatterns == 1)
-							ret += pattern;
-						else
-							ret += to_string(cntPatterns) + pattern;
-						pattern.clear();
-						break;
-					}
-					else
-						curStep += bundle;
-				}
-				else
-				{
-					if (cntPatterns == 1)
-						ret += pattern;
-					else
-						ret += to_string(cntPatterns) + pattern;
-					pattern.clear();
+					answer = info.song;
+					runTimeOfAnswer = toMin(info.end) - toMin(info.start);
 				}
 			}
 		}
-
-		if (answer == 0)
-			answer = ret.size();
-		else
-		{
-			if (answer > ret.size())
-				answer = ret.size();
-		}
 	}
-	return answer;
-}
 
+	if (answer.empty())
+		return "'(None)'";
+	else
+		return answer;
+}
 int main()
 {
-	cout << solution("abcabcdede") << endl;
+	vector<string> s;
+	//s.push_back("12:00,12:14,HELLO,CDEFGAB");
+	//s.push_back("13:00,13:05,WORLD,ABCDEF");
+
+	//s.push_back("03:00,03:30,FOO,CC#B");
+	//s.push_back("04:00,04:08,BAR,CC#BCC#BCC#B");
+
+	s.push_back("12:00,12:14,HELLO,C#DEFGAB");
+	s.push_back("13:00,13:05,WORLD,ABCDEF");
+
+	cout << solution("ABC", s) << endl;
 	return 0;
 }
