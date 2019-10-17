@@ -99,10 +99,41 @@ string makeSong(const mInfo& info)
 bool hasPattern(const string& pattern, const string& alSong)
 {
 	int i = 0;
-	while (1)
-	{
+	int len = pattern.size();
 
+	while (i < alSong.size())
+	{
+		if (alSong[i] == '#') continue;
+		string temp = alSong.substr(i, len);
+		if (temp.back() == 'C'
+			|| temp.back() == 'A'
+			|| temp.back() == 'D'
+			|| temp.back() == 'F'
+			|| temp.back() == 'G')
+		{
+			if (i + len < alSong.size())
+			{
+				if (alSong[i + len] == '#')
+				{
+					temp += '#';
+				}
+			}
+
+			if (temp == pattern)
+				return true;
+			else
+				i++;
+		}
+		else
+		{
+			if (temp == pattern)
+				return true;
+			else
+				i++;
+		}
 	}
+
+	return false;
 }
 
 string solution(string m, vector<string> musicinfos) 
@@ -136,7 +167,7 @@ string solution(string m, vector<string> musicinfos)
 	}
 
 	if (answer.empty())
-		return "'(None)'";
+		return "(None)";
 	else
 		return answer;
 }
