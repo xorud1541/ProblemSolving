@@ -1,74 +1,103 @@
 #include <iostream>
 #include <vector>
 #include <algorithm>
-#define MAX		10
-
+#define SWITHES		10
+#define CLOCKS		16
+#define INF			100000007
 using namespace std;
-int T, n, m;
+
+const char linked[SWITHES][CLOCKS + 1] =
+{
+	"xxx.............",
+	"...x...x.x.x....",
+	"....x.....x...xx",
+	"x...xxxx........",
+	"......XXX.X.X...",
+	"x.x...........xx",
+	"...x..........xx",
+	"....xx.x......xx",
+	".xxxxx..........",
+	"...xxx...x...x.."
+};
+
+int T;
+
+void move(vector<int>& clocks, int num)
+{
+	int ret = clocks[num];
+	switch (num)
+	{
+	case 12:
+		clocks[num] = 3;
+		break;
+	case 3:
+		clocks[num] = 6;
+		break;
+	case 6:
+		clocks[num] = 9;
+		break;
+	case 9:
+		clocks[num] = 12;
+	default:
+		break;
+	}
+}
+
+int run(vector<int>& clocks, int swithNum)
+{
+	//push
+	for (int i = 0; i < CLOCKS; i++)
+	{
+		if (linked[swithNum][i] == 'x')
+		{
+			move(clocks, i);
+		}
+	}
+
+	bool flag = true;
+	for (int i = 0; i < CLOCKS; i++)
+	{
+		if (clocks[i] != 12)
+		{
+			flag = false;
+			break;
+		}
+	}
+
+	if (flag)
+		return 0;
+
+	int ans = INF;
+	for (int i = 1; i < 4; i++)
+	{
+		int ret;
+		if (swithNum + 1 < 10)
+			ret = run(clocks, swithNum + 1);
+		else
+			continue;
+
+		ans = min(ans, ret + i);
+	}
+	return ans;
+}
+
 int main()
 {
 	cin >> T;
 	while (T--)
 	{
-		cin >> n >> m;
-		int ans = 0;
-		vector< vector< bool > > isFriend(n+1, vector< bool >(n+1, false));
-		for (int i = 0; i < m; i++)
+		vector<int> clocks(CLOCKS, 0);
+		for (int i = 0; i < CLOCKS; i++)
+			cin >> clocks[i];
+
+		int switchNum = 0;
+		int ans = INF;
+		for (int i = 1; i < 4; i++)
 		{
-			int a, b;
-			cin >> a >> b;
-			isFriend[a][b] = true;
-			isFriend[b][a] = true;
+			int ret = run(clocks, switchNum);
+
+			ans = min(ans, i + ret);
 		}
-
-		vector<int> friends;
-		for (int i = 0; i < n; i++)
-			friends.push_back(i);
-		do
-		{
-			int index = 0;
-			int before = -1;
-			bool succ = true;
-			while (index + 1 < n)
-			{
-				int a = friends[index];
-				int b = friends[index + 1];
-				if (before == -1)
-					before = a;
-				
-				if (a > b)
-				{
-					succ = false;
-					break;
-				}
-				else
-				{
-					if (!isFriend[a][b])
-					{
-						succ = false;
-						break;
-					}
-					else
-					{
-						if (before > a)
-						{
-							succ = false;
-							break;
-						}
-						else
-						{
-							before = a;
-						}
-					}
-				}
-				index = index + 2;
-			}
-
-			if (succ)
-				ans++;
-
-		} while (next_permutation(friends.begin(), friends.end()));
-
 		cout << ans << endl;
 	}
 	return 0;
