@@ -1,45 +1,75 @@
 #include <iostream>
-#include <queue>
-#define MAX		1000000
-int dp[MAX + 1];
-bool visited[MAX + 1];
-using namespace std;
+#include <vector>
+#include <algorithm>
+#define MAX		10
 
+using namespace std;
+int T, n, m;
 int main()
 {
-	int total, src, dst, up, down;
-	cin >> total >> src >> dst >> up >> down;
-
-	dp[src] = 0;
-	visited[src] = true;
-	queue< int > q;
-	q.push(src);
-
-	while (!q.empty())
+	cin >> T;
+	while (T--)
 	{
-		int x = q.front(); q.pop();
-
-		int ux = x + up;
-		int dx = x - down;
-
-		if (ux <= total && visited[ux] == false)
+		cin >> n >> m;
+		int ans = 0;
+		vector< vector< bool > > isFriend(n+1, vector< bool >(n+1, false));
+		for (int i = 0; i < m; i++)
 		{
-			dp[ux] = dp[x] + 1;
-			q.push(ux);
-			visited[ux] = true;
+			int a, b;
+			cin >> a >> b;
+			isFriend[a][b] = true;
+			isFriend[b][a] = true;
 		}
 
-		if (dx >= 1 && visited[dx] == false)
+		vector<int> friends;
+		for (int i = 0; i < n; i++)
+			friends.push_back(i);
+		do
 		{
-			dp[dx] = dp[x] + 1;
-			q.push(dx);
-			visited[dx] = true;
-		}
+			int index = 0;
+			int before = -1;
+			bool succ = true;
+			while (index + 1 < n)
+			{
+				int a = friends[index];
+				int b = friends[index + 1];
+				if (before == -1)
+					before = a;
+				
+				if (a > b)
+				{
+					succ = false;
+					break;
+				}
+				else
+				{
+					if (!isFriend[a][b])
+					{
+						succ = false;
+						break;
+					}
+					else
+					{
+						if (before > a)
+						{
+							succ = false;
+							break;
+						}
+						else
+						{
+							before = a;
+						}
+					}
+				}
+				index = index + 2;
+			}
+
+			if (succ)
+				ans++;
+
+		} while (next_permutation(friends.begin(), friends.end()));
+
+		cout << ans << endl;
 	}
-
-	if (dp[dst] == 0)
-		cout << "use the stairs" << endl;
-	else
-		cout << dp[dst] << endl;
 	return 0;
 }
