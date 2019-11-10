@@ -1,104 +1,175 @@
 #include <iostream>
 #include <vector>
-#include <algorithm>
-#define SWITHES		10
-#define CLOCKS		16
-#define INF			100000007
+#define MAX		100
 using namespace std;
 
-const char linked[SWITHES][CLOCKS + 1] =
-{
-	"xxx.............",
-	"...x...x.x.x....",
-	"....x.....x...xx",
-	"x...xxxx........",
-	"......XXX.X.X...",
-	"x.x...........xx",
-	"...x..........xx",
-	"....xx.x......xx",
-	".xxxxx..........",
-	"...xxx...x...x.."
-};
+int R, C, M;
 
-int T;
-
-void move(vector<int>& clocks, int num)
+struct Shark
 {
-	int ret = clocks[num];
-	switch (num)
+	Shark(int r, int c, int s, int d, int z)
+		: x(r), y(c), vel(s), dir(d), size(z)
+	{};
+
+	~Shark()
+	{};
+
+	void Up(int dist)
 	{
-	case 12:
-		clocks[num] = 3;
-		break;
-	case 3:
-		clocks[num] = 6;
-		break;
-	case 6:
-		clocks[num] = 9;
-		break;
-	case 9:
-		clocks[num] = 12;
-	default:
-		break;
-	}
-}
-
-int run(vector<int>& clocks, int swithNum)
-{
-	//push
-	for (int i = 0; i < CLOCKS; i++)
-	{
-		if (linked[swithNum][i] == 'x')
+		if (dist > x - 1)
 		{
-			move(clocks, i);
+			dir = 2; //down
+			dist = dist - x + 1;
+			x = 1;
+			Down(dist);
 		}
+		else
+			x = x - dist;
 	}
 
-	bool flag = true;
-	for (int i = 0; i < CLOCKS; i++)
+	void Down(int dist)
 	{
-		if (clocks[i] != 12)
+		if (dist > R - x)
 		{
-			flag = false;
+			dir = 1;
+			dist = dist - R + x;
+			x = R;
+			Up(dist);
+		}
+		else
+			x = x + dist;
+	}
+
+	void Left(int dist)
+	{
+		if (dist > y - 1)
+		{
+			dir = 3;
+			dist = dist - y + 1;
+			y = 1;
+			Right(dist);
+		}
+		else
+			y = y - dist;
+	}
+
+	void Right(int dist)
+	{
+		if (dist > C - y)
+		{
+			dir = 4;
+			dist = dist - C + y;
+			y = C;
+			Left(dist);
+		}
+		else
+			y = y + dist;
+	}
+
+	void Move()
+	{
+		switch (dir)
+		{
+		case 1:
+			Up(vel);
+			break;
+		case 2:
+			Down(vel);
+			break;
+		case 3:
+			Right(vel);
+			break;
+		case 4:
+			Left(vel);
 			break;
 		}
 	}
+	
+	pair<int, int> getPos() const { return make_pair(x, y); }
 
-	if (flag)
-		return 0;
+	int getSize() const { return size; }
 
-	int ans = INF;
-	for (int i = 1; i < 4; i++)
-	{
-		int ret;
-		if (swithNum + 1 < 10)
-			ret = run(clocks, swithNum + 1);
-		else
-			continue;
-
-		ans = min(ans, ret + i);
-	}
-	return ans;
-}
-
+	int x;
+	int y;
+	int vel;
+	int dir;
+	int size;
+};
 int main()
 {
-	cin >> T;
-	while (T--)
+	cin >> R >> C >> M;
+	int ans = 0;
+	vector<Shark> sharks;
+	if (M == 0)
 	{
-		vector<int> clocks(CLOCKS, 0);
-		for (int i = 0; i < CLOCKS; i++)
-			cin >> clocks[i];
-
-		int switchNum = 0;
-		int ans = INF;
-		for (int i = 1; i < 4; i++)
-		{
-			int ret = run(clocks, switchNum);
-
-			ans = min(ans, i + ret);
-		}
 		cout << ans << endl;
+		return 0;
 	}
+
+	for (int i = 0; i < M; i++)
+	{
+		int r, c, s, d, z;
+		cin >> r >> c >> s >> d >> z;
+		Shark shark(r, c, s, d, z);
+		sharks.push_back(shark);
+	}
+
+	for (int person = 1; person <= C; person++)
+	{
+		int depth = R + 1;
+		bool getShark = false;
+		vector<Shark>::iterator iter, target;
+		for (iter = sharks.begin(); iter != sharks.end(); ++iter)
+		{
+			pair<int, int> pos = iter->getPos();
+			if (pos.second == person)
+			{
+				//사람이랑 같은 곳에 있을 경우
+				
+				if (depth > pos.first)
+				{
+					depth = pos.first;
+					target = iter;
+					getShark = true;
+				}
+			}
+		}
+
+		if (getShark)
+		{
+			ans = ans + target->getSize();
+			sharks.erase(target);
+		}
+
+		vector< vector<Shark>::iterator > eraseList;
+		vector< vector< vector<Shark>::iterator > >map(R + 1, vector< vector<Shark>::iterator >(C + 1, sharks.end()));
+		for (iter = sharks.begin(); iter != sharks.end(); ++iter)
+		{
+			iter->Move();
+			pair<int, int> pos = iter->getPos();
+			if (map[pos.first][pos.second] == sharks.end())
+			{
+				map[pos.first][pos.second] = iter;
+			}
+			else
+			{
+				vector<Shark>::iterator other = map[pos.first][pos.second];
+				if (other->getSize() < iter->getSize())
+				{
+					map[pos.first][pos.second] = iter;
+					eraseList.push_back(other);
+				}
+				else
+					eraseList.push_back(iter);
+			}
+		}
+
+		for (auto it : eraseList)
+		{
+			sharks.erase(it);
+		}
+	}
+
+	cout << ans << endl;
 	return 0;
 }
