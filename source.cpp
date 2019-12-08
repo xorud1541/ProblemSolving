@@ -1,111 +1,79 @@
 #include <iostream>
 #include <vector>
+#include <algorithm>
+#define MAX		50
 using namespace std;
-int garo[100][100];
-int w, h;
 
-int start(int c)
-{
-	int r = 1;
-	while (r <= h)
-	{
-		if (garo[r][c] == 1)
-			c += 1;
-		else if (garo[r][c] == 2)
-			c -= 1;
-		r += 1;
-	}
-	return c;
-}
+int map[MAX + 1][MAX + 1];
+int N, M;
 
-bool go()
+int calc(int x, int y, vector<pair<int, int>>& vec)
 {
-	for (int i = 1; i <= w; i++)
+	int ans = -1;
+	for (int i = 0; i < vec.size(); i++)
 	{
-		int res = start(i);
-		if (res != i)
-			return false;
+		int kx = vec[i].first;
+		int ky = vec[i].second;
+
+		int dis = abs(kx - x) + abs(ky - y);
+		if (ans < 0)
+			ans = dis;
+		else
+			ans = min(ans, dis);
 	}
-	return true;
+
+	return ans;
 }
 int main()
 {
-	int m;
-	cin >> w >> m >> h;
+	cin >> N >> M;
+	vector<pair<int, int>> nodes;
 
-	while (m--)
+	for (int i = 0; i < N; i++)
 	{
-		int x, y;
-		cin >> x >> y;
-		garo[x][y] = 1;
-		garo[x][y + 1] = 2;
-	}
-
-	vector<pair<int, int>> a;
-	for (int i = 1; i <= h; i++)
-	{
-		for (int j = 1; j <= w - 1; j++)
+		for (int j = 0; j < N; j++)
 		{
-			if (garo[i][j] != 0) continue;
-			if (garo[i][j + 1] != 0) continue;
-
-			a.emplace_back(i, j);
+			cin >> map[i][j];
+			if (map[i][j] == 2)
+				nodes.emplace_back(i, j);
 		}
 	}
+
+	vector<int> index(nodes.size(), 0);
+	for (int i = 0; i < M; i++)
+		index[i] = 1;
 
 	int ans = -1;
-	if (go())
+	do
 	{
-		cout << 0 << '\n';
-		return 0;
-	}
+		vector<pair<int, int>> candidate;
 
-	int len = a.size();
-	for (int i = 0; i < len; i++)
-	{
-		int x1 = a[i].first;
-		int y1 = a[i].second;
-		if (garo[x1][y1] != 0 || garo[x1][y1 + 1] != 0) continue;
-		garo[x1][y1] = 1;
-		garo[x1][y1 + 1] = 2;
-		if (go())
+		for (int i = 0; i < nodes.size(); i++)
 		{
-			if (ans == -1 || ans > 1)
-				ans = 1;
-		}
-		for (int j = i + 1; j < len; j++)
-		{
-			int x2 = a[j].first;
-			int y2 = a[j].second;
-			if (garo[x2][y2] != 0 || garo[x2][y2 + 1] != 0) continue;
-			garo[x1][y1] = 1;
-			garo[x1][y1 + 1] = 2;
-			if (go())
+			if (index[i] == 1)
 			{
-				if (ans == -1 || ans > 2)
-					ans = 2;
+				candidate.push_back(nodes[i]);
 			}
-			for (int k = j + 1; k < len; k++)
+		}
+
+		int ret = 0;
+		for (int i = 0; i < N; i++)
+		{
+			for (int j = 0; j < N; j++)
 			{
-				int x3 = a[k].first;
-				int y3 = a[k].second;
-				if (garo[x3][y3] != 0 || garo[x3][y3 + 1] != 0) continue;
-				garo[x3][y3] = 1;
-				garo[x3][y3 + 1] = 2;
-				if (go())
+				if (map[i][j] == 1)
 				{
-					if (ans == -1 || ans > 3)
-						ans = 3;
+					ret += calc(i, j, candidate);
 				}
-				garo[x3][y3] = 0;
-				garo[x3][y3 + 1] = 0;
 			}
-			garo[x2][y2] = 0;
-			garo[x2][y2 + 1] = 0;
 		}
-		garo[x1][y1] = 0;
-		garo[x1][y1 + 1] = 0;
-	}
+
+		if (ans < 0)
+			ans = ret;
+		else
+			ans = min(ans, ret);
+
+	} while (prev_permutation(index.begin(), index.end()));
 
 	cout << ans << '\n';
 	return 0;
