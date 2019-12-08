@@ -1,117 +1,112 @@
 #include <iostream>
 #include <vector>
-#include <algorithm>
-#define MAX		500
 using namespace std;
+int garo[100][100];
+int w, h;
 
-int N, M;
-int dx[4] = { -1, 0, 1, 0 };
-int dy[4] = { 0, -1, 0, 1 };
-bool visited[MAX + 1][MAX + 1];
-
-int except(int x, int y, vector< vector<int> >& map)
+int start(int c)
 {
-	int ret = 0;
-	int center = map[x][y];
-	if (x - 1 >= 0 && x + 1 < N)
+	int r = 1;
+	while (r <= h)
 	{
-		int up = map[x - 1][y];
-		int down = map[x + 1][y];
-
-		if (y - 1 >= 0)
-		{
-			int temp = center + up + down + map[x][y - 1];
-			ret = max(ret, temp);
-		}
-
-		if (y + 1 < M)
-		{
-			int temp = center + up + down + map[x][y + 1];
-			ret = max(ret, temp);
-		}
+		if (garo[r][c] == 1)
+			c += 1;
+		else if (garo[r][c] == 2)
+			c -= 1;
+		r += 1;
 	}
-
-	if (y - 1 >= 0 && y + 1 < M)
-	{
-		int left = map[x][y - 1];
-		int right = map[x][y + 1];
-
-		if (x - 1 >= 0)
-		{
-			int temp = center + left + right + map[x - 1][y];
-			ret = max(ret, temp);
-		}
-
-		if (x + 1 < N)
-		{
-			int temp = center + left + right + map[x + 1][y];
-			ret = max(ret, temp);
-		}
-	}
-
-	return ret;
+	return c;
 }
 
-int solution(int x, int y, int cnt, vector< vector<int> >& map)
+bool go()
 {
-	int ret = map[x][y];
-	if (cnt == 4)
+	for (int i = 1; i <= w; i++)
 	{
-		return ret;
+		int res = start(i);
+		if (res != i)
+			return false;
 	}
-
-	int ans = 0;
-	for (int k = 0; k < 4; k++)
-	{
-		int nx = x + dx[k];
-		int ny = y + dy[k];
-
-		if (nx < 0 || nx >= N || ny < 0 || ny >= M) continue;
-
-		if (!visited[nx][ny])
-		{
-			visited[nx][ny] = true;
-
-			int temp = solution(nx, ny, cnt + 1, map);
-
-			ans = max(ans, ret + temp);
-
-			visited[nx][ny] = false;
-		}
-		
-	}
-
-	return ans;
+	return true;
 }
-
 int main()
 {
-	cin >> N >> M;
+	int m;
+	cin >> w >> m >> h;
 
-	vector< vector<int> > map(N, vector<int>(M, 0));
-	for (int i = 0; i < N; i++)
+	while (m--)
 	{
-		for (int j = 0; j < M; j++)
+		int x, y;
+		cin >> x >> y;
+		garo[x][y] = 1;
+		garo[x][y + 1] = 2;
+	}
+
+	vector<pair<int, int>> a;
+	for (int i = 1; i <= h; i++)
+	{
+		for (int j = 1; j <= w - 1; j++)
 		{
-			cin >> map[i][j];
+			if (garo[i][j] != 0) continue;
+			if (garo[i][j + 1] != 0) continue;
+
+			a.emplace_back(i, j);
 		}
 	}
 
-	int ans = 0;
-	for (int i = 0; i < N; i++)
+	int ans = -1;
+	if (go())
 	{
-		for (int j = 0; j < M; j++)
-		{
-			visited[i][j] = true;
-			int ret = solution(i, j, 1, map);
-			ans = max(ret, ans);
-			visited[i][j] = false;
-
-			ret = except(i, j, map);
-			ans = max(ans, ret);
-		}
+		cout << 0 << '\n';
+		return 0;
 	}
 
-	cout << ans << endl;
+	int len = a.size();
+	for (int i = 0; i < len; i++)
+	{
+		int x1 = a[i].first;
+		int y1 = a[i].second;
+		if (garo[x1][y1] != 0 || garo[x1][y1 + 1] != 0) continue;
+		garo[x1][y1] = 1;
+		garo[x1][y1 + 1] = 2;
+		if (go())
+		{
+			if (ans == -1 || ans > 1)
+				ans = 1;
+		}
+		for (int j = i + 1; j < len; j++)
+		{
+			int x2 = a[j].first;
+			int y2 = a[j].second;
+			if (garo[x2][y2] != 0 || garo[x2][y2 + 1] != 0) continue;
+			garo[x1][y1] = 1;
+			garo[x1][y1 + 1] = 2;
+			if (go())
+			{
+				if (ans == -1 || ans > 2)
+					ans = 2;
+			}
+			for (int k = j + 1; k < len; k++)
+			{
+				int x3 = a[k].first;
+				int y3 = a[k].second;
+				if (garo[x3][y3] != 0 || garo[x3][y3 + 1] != 0) continue;
+				garo[x3][y3] = 1;
+				garo[x3][y3 + 1] = 2;
+				if (go())
+				{
+					if (ans == -1 || ans > 3)
+						ans = 3;
+				}
+				garo[x3][y3] = 0;
+				garo[x3][y3 + 1] = 0;
+			}
+			garo[x2][y2] = 0;
+			garo[x2][y2 + 1] = 0;
+		}
+		garo[x1][y1] = 0;
+		garo[x1][y1 + 1] = 0;
+	}
+
+	cout << ans << '\n';
 	return 0;
 }
