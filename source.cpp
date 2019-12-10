@@ -1,68 +1,97 @@
 #include <iostream>
-#include <vector>
 #include <queue>
 #include <tuple>
-#define MAX		200
+#include <string>
+#include <cstring>
+#define MAX		1000
 using namespace std;
 
-int K, W, H;
-int map[MAX][MAX];
-int ans[MAX][MAX][31];
-
-int dx[] = { 0, 0, 1, -1, -1,-2,-2,-1, 1, 2, 2, 1 };
-int dy[] = { 1, -1, 0, 0, -2,-1, 1, 2, 2, 1,-1,-2 };
-int cost[] = { 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1 };
-
+int N, M;
+int map[MAX + 1][MAX + 1];
+int ans[MAX + 1][MAX + 1][2];
+int dx[4] = { -1, 0, 1, 0 };
+int dy[4] = { 0, 1, 0, -1 };
 int main()
 {
-	cin >> K;
-	cin >> W >> H;
-
-	for (int i = 0; i < H; i++)
+	cin >> N >> M;
+	vector<string> v;
+	for (int i = 0; i < N; i++)
 	{
-		for (int j = 0; j < W; j++)
+		string s;
+		cin >> s;
+		v.push_back(s);
+	}
+
+	for (int i = 0; i < N; i++)
+	{
+		string s = v[i];
+		for (int j = 0; j < s.size(); j++)
 		{
-			cin >> map[i][j];
+			char c = s[j];
+			if (c == '0')
+				map[i][j] = 0;
+			else
+				map[i][j] = 1;
 		}
 	}
 
-	memset(ans, -1, sizeof(ans));
 	queue<tuple<int, int, int>> q;
 	q.push(make_tuple(0, 0, 0));
+	memset(ans, -1, sizeof(ans));
 	ans[0][0][0] = 0;
 
 	while (!q.empty())
 	{
 		int x, y, z;
 		tie(x, y, z) = q.front(); q.pop();
-
-		for (int idx = 0; idx < 12; idx++)
+		for (int k = 0; k < 4; k++)
 		{
-			int nx = x + dx[idx];
-			int ny = y + dy[idx];
-			int nc = z + cost[idx];
-			if (nx < 0 || nx >= H || ny < 0 || ny >= W) continue;
+			int nx = x + dx[k];
+			int ny = y + dy[k];
+			if (nx < 0 || nx >= N || ny < 0 || ny >= M) continue;
 
-			if (map[nx][ny] == 1) continue;
-			if (nc <= K)
+			if (z == 0)
 			{
-				if (ans[nx][ny][nc] == -1)
+				if (map[nx][ny] == 0 && ans[nx][ny][0] == -1)
 				{
-					ans[nx][ny][nc] = ans[nx][ny][z] + 1;
-					q.push(make_tuple(nx, ny, nc));
+					ans[nx][ny][0] = ans[x][y][0] + 1;
+					q.push(make_tuple(nx, ny, 0));
+				}
+				else if (map[nx][ny] == 1 && ans[nx][ny][1] == -1)
+				{
+					ans[nx][ny][1] = ans[x][y][0] + 1;
+					q.push(make_tuple(nx, ny, 1));
+				}
+			}
+			else // z=1
+			{
+				if (map[nx][ny] == 0 && ans[nx][ny][1] == -1)
+				{
+					ans[nx][ny][1] = ans[x][y][1] + 1;
+					q.push(make_tuple(nx, ny, 1));
 				}
 			}
 		}
 	}
 
-	int ret = -1;
-	for (int i = 0; i <= K; i++)
+	if (ans[N - 1][M - 1][0] == -1 && ans[N - 1][M - 1][1] == -1)
+		cout << -1 << '\n';
+	else
 	{
-		if(ans[H - 1][W - 1][i] == -1) continue;
-		if (ret == -1 || ret > ans[H - 1][W - 1][i])
-			ret = ans[H - 1][W - 1][i];
+		int a = ans[N - 1][M - 1][0];
+		int b = ans[N - 1][M - 1][1];
+		
+		if (a == -1)
+			cout << b + 1<< '\n';
+		else if (b == -1)
+			cout << a  + 1<< '\n';
+		else
+		{
+			if (a > b)
+				cout << b + 1<< '\n';
+			else
+				cout << a + 1<< '\n';
+		}
 	}
-
-	cout << ret << endl;
 	return 0;
 }
