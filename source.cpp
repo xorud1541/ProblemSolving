@@ -1,80 +1,68 @@
 #include <iostream>
 #include <vector>
-#include <algorithm>
-#define MAX		50
+#include <queue>
+#include <tuple>
+#define MAX		200
 using namespace std;
 
-int map[MAX + 1][MAX + 1];
-int N, M;
+int K, W, H;
+int map[MAX][MAX];
+int ans[MAX][MAX][31];
 
-int calc(int x, int y, vector<pair<int, int>>& vec)
-{
-	int ans = -1;
-	for (int i = 0; i < vec.size(); i++)
-	{
-		int kx = vec[i].first;
-		int ky = vec[i].second;
+int dx[] = { 0, 0, 1, -1, -1,-2,-2,-1, 1, 2, 2, 1 };
+int dy[] = { 1, -1, 0, 0, -2,-1, 1, 2, 2, 1,-1,-2 };
+int cost[] = { 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1 };
 
-		int dis = abs(kx - x) + abs(ky - y);
-		if (ans < 0)
-			ans = dis;
-		else
-			ans = min(ans, dis);
-	}
-
-	return ans;
-}
 int main()
 {
-	cin >> N >> M;
-	vector<pair<int, int>> nodes;
+	cin >> K;
+	cin >> W >> H;
 
-	for (int i = 0; i < N; i++)
+	for (int i = 0; i < H; i++)
 	{
-		for (int j = 0; j < N; j++)
+		for (int j = 0; j < W; j++)
 		{
 			cin >> map[i][j];
-			if (map[i][j] == 2)
-				nodes.emplace_back(i, j);
 		}
 	}
 
-	vector<int> index(nodes.size(), 0);
-	for (int i = 0; i < M; i++)
-		index[i] = 1;
+	memset(ans, -1, sizeof(ans));
+	queue<tuple<int, int, int>> q;
+	q.push(make_tuple(0, 0, 0));
+	ans[0][0][0] = 0;
 
-	int ans = -1;
-	do
+	while (!q.empty())
 	{
-		vector<pair<int, int>> candidate;
+		int x, y, z;
+		tie(x, y, z) = q.front(); q.pop();
 
-		for (int i = 0; i < nodes.size(); i++)
+		for (int idx = 0; idx < 12; idx++)
 		{
-			if (index[i] == 1)
-			{
-				candidate.push_back(nodes[i]);
-			}
-		}
+			int nx = x + dx[idx];
+			int ny = y + dy[idx];
+			int nc = z + cost[idx];
+			if (nx < 0 || nx >= H || ny < 0 || ny >= W) continue;
 
-		int ret = 0;
-		for (int i = 0; i < N; i++)
-		{
-			for (int j = 0; j < N; j++)
+			if (map[nx][ny] == 1) continue;
+			if (nc <= K)
 			{
-				if (map[i][j] == 1)
+				if (ans[nx][ny][nc] == -1)
 				{
-					ret += calc(i, j, candidate);
+					ans[nx][ny][nc] = ans[nx][ny][z] + 1;
+					q.push(make_tuple(nx, ny, nc));
 				}
 			}
 		}
+	}
 
-		if (ans < 0)
-			ans = ret;
-		else
-			ans = min(ans, ret);
+	int ret = -1;
+	for (int i = 0; i <= K; i++)
+	{
+		if(ans[H - 1][W - 1][i] == -1) continue;
+		if (ret == -1 || ret > ans[H - 1][W - 1][i])
+			ret = ans[H - 1][W - 1][i];
+	}
 
-	} while (prev_permutation(index.begin(), index.end()));
-
-	cout << ans << '\n';
+	cout << ret << endl;
 	return 0;
 }
