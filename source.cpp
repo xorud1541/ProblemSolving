@@ -1,97 +1,127 @@
 #include <iostream>
 #include <queue>
+#include <vector>
 #include <tuple>
-#include <string>
-#include <cstring>
-#define MAX		1000
-using namespace std;
+#include <algorithm>
+#define MAX		1001
 
 int N, M;
-int map[MAX + 1][MAX + 1];
-int ans[MAX + 1][MAX + 1][2];
-int dx[4] = { -1, 0, 1, 0 };
-int dy[4] = { 0, 1, 0, -1 };
+int dx[] = { -1, 0, 1, 0 };
+int dy[] = { 0, -1, 0, 1 };
+int dp[MAX][MAX][2];
+bool visited[MAX][MAX];
+int ans = 1e9;
+using namespace std;
+
+pair<int, int> getNext(int k, int x, int y, vector< vector<int> >& map)
+{
+	int nx, ny;
+	nx = x + dx[k];
+	ny = y + dy[k];
+
+	if (nx < 0 || nx >= N || ny < 0 || ny >= M)
+		return make_pair(x, y);
+	
+	if(map[nx][ny] == 0 || map[nx][ny] == 3)
+		return make_pair(x, y);
+
+	return getNext(k, nx, ny, map);
+}
+
 int main()
 {
 	cin >> N >> M;
-	vector<string> v;
-	for (int i = 0; i < N; i++)
-	{
-		string s;
-		cin >> s;
-		v.push_back(s);
-	}
 
+	vector< vector<int> > map(N, vector<int>(M, 0));
 	for (int i = 0; i < N; i++)
 	{
-		string s = v[i];
-		for (int j = 0; j < s.size(); j++)
+		for (int j = 0; j < M; j++)
 		{
-			char c = s[j];
-			if (c == '0')
-				map[i][j] = 0;
-			else
-				map[i][j] = 1;
+			cin >> map[i][j];
 		}
 	}
 
 	queue<tuple<int, int, int>> q;
 	q.push(make_tuple(0, 0, 0));
-	memset(ans, -1, sizeof(ans));
-	ans[0][0][0] = 0;
+	visited[0][0] = true;
 
 	while (!q.empty())
 	{
 		int x, y, z;
-		tie(x, y, z) = q.front(); q.pop();
+		tie(x, y, z) = q.front();
+		q.pop();
+
 		for (int k = 0; k < 4; k++)
 		{
 			int nx = x + dx[k];
 			int ny = y + dy[k];
+
 			if (nx < 0 || nx >= N || ny < 0 || ny >= M) continue;
+			int c = map[nx][ny];
+			if (!visited[nx][ny] && c != 0)
+			{
+				if (c == 1)
+				{
+					visited[nx][ny] = true;
+					if (ans > dp[x][y][z] + 1)
+					{
+						ans = dp[x][y][z] + 1;
+						dp[nx][ny][z] = dp[x][y][z] + 1;
+						q.push(make_tuple(nx, ny, z));
+					}
+				}
+				else if (c == 2)
+				{
+					visited[nx][ny] = true;
+					if (ans > dp[x][y][z] + 1)
+					{
+						ans = dp[x][y][z] + 1;
+						dp[nx][ny][1] = dp[x][y][z] + 1;
+						q.push(make_tuple(nx, ny, 1));
+					}
+				}
+				else if (c == 3 && z == 1)
+				{
+					visited[nx][ny] = true;
+					if (ans > dp[x][y][z] + 1)
+					{
+						ans = dp[x][y][z] + 1;
+						dp[nx][ny][z] = ans;
+						q.push(make_tuple(nx, ny, 1));
+					}
+				}
+				else if (c == 4)
+				{
+					pair<int, int> slide = getNext(k, nx, ny, map);
+					if (!visited[slide.first][slide.second])
+					{
+						int diff = max(abs(x - slide.first), abs(y - slide.second));
 
-			if (z == 0)
-			{
-				if (map[nx][ny] == 0 && ans[nx][ny][0] == -1)
-				{
-					ans[nx][ny][0] = ans[x][y][0] + 1;
-					q.push(make_tuple(nx, ny, 0));
+						if (ans > dp[x][y][z] + diff)
+						{
+							ans = dp[x][y][z] + diff;
+							dp[slide.first][slide.second][0] = ans;
+							q.push(make_tuple(slide.first, slide.second, 0));
+						}
+					}
 				}
-				else if (map[nx][ny] == 1 && ans[nx][ny][1] == -1)
-				{
-					ans[nx][ny][1] = ans[x][y][0] + 1;
-					q.push(make_tuple(nx, ny, 1));
-				}
-			}
-			else // z=1
-			{
-				if (map[nx][ny] == 0 && ans[nx][ny][1] == -1)
-				{
-					ans[nx][ny][1] = ans[x][y][1] + 1;
-					q.push(make_tuple(nx, ny, 1));
-				}
+				else
+				{ }
 			}
 		}
 	}
 
-	if (ans[N - 1][M - 1][0] == -1 && ans[N - 1][M - 1][1] == -1)
-		cout << -1 << '\n';
+	int A = dp[N - 1][M - 1][0];
+	int B = dp[N - 1][M - 1][1];
+
+	if (A != 0 && B != 0)
+		cout << min(A, B) << endl;
+	else if (A == 0 && B == 0)
+		cout << -1 << endl;
+	else if (A == 0 && B != 0)
+		cout << B << endl;
 	else
-	{
-		int a = ans[N - 1][M - 1][0];
-		int b = ans[N - 1][M - 1][1];
-		
-		if (a == -1)
-			cout << b + 1<< '\n';
-		else if (b == -1)
-			cout << a  + 1<< '\n';
-		else
-		{
-			if (a > b)
-				cout << b + 1<< '\n';
-			else
-				cout << a + 1<< '\n';
-		}
-	}
+		cout << A << endl;
+
 	return 0;
 }
