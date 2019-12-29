@@ -1,138 +1,114 @@
 #include <iostream>
-#include <queue>
-#include <cstdio>
-#include <cstring>
 #include <vector>
-#include <tuple>
-#include <algorithm>
-#define MAX		1005
-
-int N, M;
-int dx[] = { -1, 0, 1, 0 };
-int dy[] = { 0, -1, 0, 1 };
-int dp[MAX][MAX][2];
-const int INF = 100000007;
+#include <string>
+#include <queue>
+#include <map>
 using namespace std;
 
-pair<int, int> getNext(int k, int x, int y, vector< vector<int> >& map)
+map<string, int> m;
+int dx[] = { -1, 0, 1, 0 };
+int dy[] = { 0, -1, 0, 1 };
+
+string map_string(vector< vector<int> >& map)
 {
-	int nx, ny;
-	nx = x + dx[k];
-	ny = y + dy[k];
+	string s;
 
-	if (nx < 0 || nx >= N || ny < 0 || ny >= M)
-		return make_pair(x, y);
+	for (int i = 0; i < 3; i++)
+	{
+		for (int j = 0; j < 3; j++)
+		{
+			s += map[i][j] + '0';
+		}
+	}
+	return s;
+}
 
-	if (map[nx][ny] == 0 || map[nx][ny] == 3)
-		return make_pair(x, y);
+void string_map(const string& s, vector< vector<int> >& map)
+{
+	map[0][0] = s[0] - '0'; map[0][1] = s[1] - '0'; map[0][2] = s[2] - '0';
+	map[1][0] = s[3] - '0'; map[1][1] = s[4] - '0'; map[1][2] = s[5] - '0';
+	map[2][0] = s[6] - '0'; map[2][1] = s[7] - '0'; map[2][2] = s[8] - '0';
+}
 
-	return getNext(k, nx, ny, map);
+pair<int, int> get_zero(vector< vector<int> >& map)
+{
+	pair<int, int> p;
+	for (int i = 0; i < 3; i++)
+	{
+		for (int j = 0; j < 3; j++)
+		{
+			if (map[i][j] == 0)
+			{
+				p = make_pair(i, j);
+				break;
+			}
+		}
+	}
+	return p;
 }
 
 int main()
 {
-	cin >> N >> M;
-	for (int i = 0; i < MAX; i++)
+	string ans = "123456780";
+
+	vector< vector<int> > map(3, vector<int>(3, 0));
+	for (int i = 0; i < 3; i++)
 	{
-		for (int j = 0; j < MAX; j++)
-		{
-			for (int k = 0; k < 2; k++)
-			{
-				dp[i][j][k] = INF;
-			}
-		}
-	}
-	vector< vector<int> > map(N, vector<int>(M, 0));
-	for (int i = 0; i < N; i++)
-	{
-		for (int j = 0; j < M; j++)
+		for (int j = 0; j < 3; j++)
 		{
 			cin >> map[i][j];
 		}
 	}
 
-	queue<tuple<int, int, int>> q;
-	q.push(make_tuple(0, 0, 0));
-	dp[0][0][0] = 0;
+	string t = map_string(map);
+	m[t] = 0;
 
+	queue<string> q;
+	q.push(t);
+	bool ok = false;
 	while (!q.empty())
 	{
-		int x, y, z;
-		tie(x, y, z) = q.front();
-		q.pop();
+		string str = q.front(); q.pop();
+		int cnt = m[str];
 
-		if (x == N - 1 && y == M - 1) continue;
+		vector< vector<int> > temp_map(3, vector<int>(3, 0));
+		string_map(str, temp_map);
+
+		pair<int, int> p = get_zero(temp_map);
+		int x = p.first;
+		int y = p.second;
 
 		for (int k = 0; k < 4; k++)
 		{
 			int nx = x + dx[k];
 			int ny = y + dy[k];
+			if (nx < 0 || nx >= 3 || ny < 0 || ny >= 3) continue;
 
-			if (nx < 0 || nx >= N || ny < 0 || ny >= M) continue;
-			int c = map[nx][ny];
-			if (c == 1)
-			{
-				if (dp[nx][ny][z] > dp[x][y][z] + 1)
-				{
-					dp[nx][ny][z] = dp[x][y][z] + 1;
-					q.push(make_tuple(nx, ny, z));
-				}
-			}
-			else if (c == 2)
-			{
-				if (dp[nx][ny][1] > dp[x][y][z] + 1)
-				{
-					dp[nx][ny][1] = dp[x][y][z] + 1;
-					q.push(make_tuple(nx, ny, 1));
-				}
-			}
-			else if (c == 3 && z == 1)
-			{
-				if (dp[nx][ny][z] > dp[x][y][z] + 1)
-				{
-					dp[nx][ny][z] = dp[x][y][z] + 1;
-					q.push(make_tuple(nx, ny, 1));
-				}
-			}
-			else if (c == 4)
-			{
-				//pair<int, int> slide = getNext(k, nx, ny, map);
-				int diff = 1;
-				while (1)
-				{
-					if (map[nx][ny] != 4) break;
-					int next_x = nx + dx[k];
-					int next_y = ny + dy[k];
-					if (next_x < 0 || next_x >= N || next_y < 0 || next_y >= M) break;
-					if (map[next_x][next_y] == 0 || map[next_x][next_y] == 3) break;
-					nx = next_x; ny = next_y; diff++;
- 				}
+			swap(temp_map[x][y], temp_map[nx][ny]);
 
-				if (map[nx][ny] == 2)
+			string s = map_string(temp_map);
+			if (m.count(s) == 0)
+			{
+				m[s] = cnt + 1;
+				if (s == ans)
 				{
-					if (dp[nx][ny][1] > dp[x][y][z] + diff)
-					{
-						dp[nx][ny][1] = dp[x][y][z] + diff;
-						q.push(make_tuple(nx, ny, 1));
-					}
+					ok = true;
+					break;
 				}
-				else if (map[nx][ny] == 4 || map[nx][ny] == 1)
-				{
-					if (dp[nx][ny][0] > dp[x][y][z] + diff)
-					{
-						dp[nx][ny][0] = dp[x][y][z] + diff;
-						q.push(make_tuple(nx, ny, 0));
-					}
-				}
+				q.push(s);
 			}
-			else {}
+
+			swap(temp_map[x][y], temp_map[nx][ny]);
 		}
+
+		if (ok)
+			break;
 	}
 
-	int ans = dp[N - 1][M - 1][0] > dp[N - 1][M - 1][1] ? dp[N - 1][M - 1][1] : dp[N - 1][M - 1][0];
-	if (ans == INF)
-		ans = -1;
-	cout << ans << endl;
+	if (m.count(ans) != 0)
+		cout << m[ans] << endl;
+	else
+		cout << -1 << endl;
 
 	return 0;
 }
