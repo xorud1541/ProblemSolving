@@ -1,111 +1,113 @@
 #include <iostream>
 #include <vector>
-#include <algorithm>
+#include <queue>
+#include <string>
+#include <tuple>
+#define MAX		100000007
 using namespace std;
 
-int N;
+int N, M, k;
+int dp[1001][1001][12];
+int map[1001][1001];
 
-typedef struct pos
+int dx[] = { -1, 0, 1, 0 };
+int dy[] = { 0, -1, 0, 1 };
+int main()
 {
-	int x;
-	int y;
-} Pos;
-
-bool compare(Pos& a, Pos& b)
-{
-	return a.x < b.x;
-}
-
-bool compare2(Pos& a, Pos& b)
-{
-	if (a.y != b.y)
-		return a.y < b.y;
-}
-
-vector< Pos > dots;
-
-int get_distance(const Pos& a, const Pos& b)
-{
-	return ((a.x - b.x) * (a.x - b.x)) + ((a.y - b.y) * (a.y - b.y));
-}
-
-int search(int low, int high)
-{
-	int ret = 0;
-	int cnt = high - low + 1;
-
-	if (cnt == 2)
+	cin >> N >> M >> k;
+	vector<string> t;
+	for (int i = 0; i < N; i++)
 	{
-		ret = get_distance(dots[low], dots[high]);
+		string s;
+		cin >> s;
+		t.push_back(s);
 	}
-	else if (cnt == 3)
+
+	for (int i = 0; i < N; i++)
 	{
-		int mid = low + 1;
-		int x = get_distance(dots[low], dots[high]);
-		int y = get_distance(dots[low], dots[mid]);
-		int z = get_distance(dots[mid], dots[high]);
-
-		ret = min({ x, y, z });
-	}
-	else
-	{
-		int left = 0;
-		int right = 0;
-		int mid = (low + high) / 2;
-		left = search(low, mid);
-		right = search(mid + 1, high);
-
-		int len = min(left, right);
-
-		int x = dots[mid].x;
-
-		vector<Pos> dots2;
-		for (int i = low; i <= high; i++)
+		for (int j = 0; j < M; j++)
 		{
-			int diff = x - dots[i].x;
-			if (diff * diff < len)
-				dots2.push_back(dots[i]);
-		}
-
-		sort(dots2.begin(), dots2.end(), compare2);
-
-		for (int i = 0; i < dots2.size(); i++)
-		{
-			for (int j = i + 1; j < dots2.size(); j++)
+			for (int l = 0; l <= k; l++)
 			{
-				if ((dots2[j].y - dots2[i].y) * (dots2[j].y - dots2[i].y) < len)
+				dp[i][j][l] = MAX;
+			}
+		}
+	}
+
+	for (int i = 0; i < N; i++)
+	{
+		for (int j = 0; j < M; j++)
+		{
+			map[i][j] = t[i][j] - '0';
+		}
+	}
+
+	queue<tuple<int, int, int>> q;
+	q.push(make_tuple(0, 0, 0));
+	dp[0][0][0] = 1;
+
+	while (!q.empty())
+	{
+		int x, y, z;
+		tie(x, y, z) = q.front(); q.pop();
+
+		for (int d = 0; d < 4; d++)
+		{
+			int nx = x + dx[d];
+			int ny = y + dy[d];
+			if (nx < 0 || nx >= N || ny < 0 || ny >= M) continue;
+
+			if (z == k)
+			{
+				if (map[nx][ny] == 0 && (dp[nx][ny][z] > dp[x][y][z] + 1))
 				{
-					if (ret == 0)
-					{
-						ret = get_distance(dots2[i], dots2[j]);
-					}
-					else
-					{
-						ret = min(ret, get_distance(dots2[i], dots2[j]));
-					}
+					dp[nx][ny][z] = dp[x][y][z] + 1;
+					q.push(make_tuple(nx, ny, z));
+				}
+			}
+			else if (z < k)
+			{
+				if (map[nx][ny] == 0 && (dp[nx][ny][z] > dp[x][y][z] + 1))
+				{
+					dp[nx][ny][z] = dp[x][y][z] + 1;
+					q.push(make_tuple(nx, ny, z));
+				}
+				else if (map[nx][ny] == 1 && (dp[nx][ny][z + 1] > dp[x][y][z] + 1))
+				{
+					dp[nx][ny][z + 1] = dp[x][y][z] + 1;
+					q.push(make_tuple(nx, ny, z + 1));
 				}
 			}
 		}
 	}
-	return ret;
-}
-int main()
-{
-	cin >> N;
-	for (int i = 0; i < N; i++)
+
+	bool no = true;
+	for (int i = 0; i <= k; i++)
 	{
-		Pos p;
-		cin >> p.x >> p.y;
-		dots.push_back(p);
+		if (dp[N - 1][M - 1][i] != MAX)
+		{
+			no = false;
+			break;
+		}
 	}
 
-	sort(dots.begin(), dots.end(), compare);
+	if (no)
+		cout << -1 << endl;
+	else
+	{
+		int ret = 0;
+		for (int i = 0; i <= k; i++)
+		{
+			if (ret == 0)
+				ret = dp[N - 1][M - 1][i];
+			else
+			{
+				if (ret > dp[N - 1][M - 1][i])
+					ret = dp[N - 1][M - 1][i];
+			}
+		}
 
-	int low = 0;
-	int high = dots.size() - 1;
-
-	int ret = search(low, high);
-
-	cout << ret << endl;
+		cout << ret << endl;
+	}
 	return 0;
 }
