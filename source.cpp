@@ -1,123 +1,72 @@
 #include <iostream>
 #include <vector>
 #include <algorithm>
-#include <queue>
 using namespace std;
 
-int N, M;
-int map[10][10];
-int ans;
-int dx[] = { -1, 0, 1, 0 };
-int dy[] = { 0, -1, 0, 1 };
-vector<pair<int, int>> virus;
+int M, N;
+long long L;
 
-int func(vector< vector<int> >& _map)
+bool search(vector<long long>& saro, long long left, long long right)
 {
-	vector < vector<bool> > visited(N, vector<bool>(M, false));
-	for (int i = 0; i < virus.size(); i++)
+	long long low = 0;
+	long long high = saro.size() - 1;
+	bool ok = false;
+	while (low <= high)
 	{
-		int x = virus[i].first;
-		int y = virus[i].second;
+		long long mid = (low + high) / 2;
 
-		queue< pair<int, int> > q;
-		q.push(make_pair(x, y));
-		visited[x][y] = true;
-
-		while (!q.empty())
+		if (left <= saro[mid] && saro[mid] <= right)
 		{
-			int x = q.front().first;
-			int y = q.front().second;
-			q.pop();
-
-			for (int k = 0; k < 4; k++)
-			{
-				int nx = x + dx[k];
-				int ny = y + dy[k];
-				if (nx < 0 || nx >= N || ny < 0 || ny >= M) continue;
-
-				if (!visited[nx][ny] && _map[nx][ny] == 0)
-				{
-					visited[nx][ny] = true;
-					q.push(make_pair(nx, ny));
-					_map[nx][ny] = 2;
-				}
-			}
+			ok = true;
+			break;
 		}
-	}
-
-	int ret = 0;
-	for (int i = 0; i < N; i++)
-	{
-		for (int j = 0; j < M; j++)
+		else if (saro[mid] > right)
 		{
-			if (_map[i][j] == 0)
-				ret++;
+			high = mid - 1;
 		}
+		else if (saro[mid] < left)
+		{
+			low = mid + 1;
+		}
+		else 
+		{ }
 	}
-	return ret;
+	return ok;
 }
 
 int main()
 {
-	cin >> N >> M;
-	vector< pair<int, int> > zeros;
+	cin >> M >> N >> L;
+
+	vector<long long> saro(M, 0);
+	vector<pair<long long, long long>> animals;
+	for (int i = 0; i < M; i++)
+		cin >> saro[i];
 
 	for (int i = 0; i < N; i++)
 	{
-		for (int j = 0; j < M; j++)
-		{
-			cin >> map[i][j];
-			if (map[i][j] == 0)
-			{
-				zeros.push_back(make_pair(i, j));
-			}
-			else if (map[i][j] == 2)
-			{
-				virus.push_back(make_pair(i, j));
-			}
-		}
+		long long x, y;
+		cin >> x >> y;
+		animals.push_back(make_pair(x, y));
 	}
 
-	vector<int> a(zeros.size(), 0);
-	a[0] = a[1] = a[2] = 1;
-
-	do
+	sort(saro.begin(), saro.end());
+	int ans = 0;
+	for (int i = 0; i < N; i++)
 	{
-		for (int i = 0; i < a.size(); i++)
+		long long x = animals[i].first;
+		long long y = animals[i].second;
+
+		if (L >= y)
 		{
-			if (a[i] == 1)
-			{
-				int x = zeros[i].first;
-				int y = zeros[i].second;
+			long long left = x - (L - y);
+			long long right = x + (L - y);
 
-				map[x][y] = 1;
-			}
+			bool ok = search(saro, left, right);
+			if (ok)
+				ans++;
 		}
-
-		vector< vector<int> > cpy_map(N, vector<int>(M, 0));
-
-		for (int i = 0; i < N; i++)
-		{
-			for (int j = 0; j < M; j++)
-			{
-				cpy_map[i][j] = map[i][j];
-			}
-		}
-
-		int ret = func(cpy_map);
-		ans = max(ret, ans);
-
-		for (int i = 0; i < a.size(); i++)
-		{
-			if (a[i] == 1)
-			{
-				int x = zeros[i].first;
-				int y = zeros[i].second;
-
-				map[x][y] = 0;
-			}
-		}
-	} while (prev_permutation(a.begin(), a.end()));
+	}
 
 	cout << ans << endl;
 	return 0;
