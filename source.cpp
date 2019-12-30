@@ -1,73 +1,88 @@
 #include <iostream>
-#include <vector>
-#include <algorithm>
+#include <queue>
+#include <map>
+#define MAX		 100001
 using namespace std;
 
-int M, N;
-long long L;
-
-bool search(vector<long long>& saro, long long left, long long right)
-{
-	long long low = 0;
-	long long high = saro.size() - 1;
-	bool ok = false;
-	while (low <= high)
-	{
-		long long mid = (low + high) / 2;
-
-		if (left <= saro[mid] && saro[mid] <= right)
-		{
-			ok = true;
-			break;
-		}
-		else if (saro[mid] > right)
-		{
-			high = mid - 1;
-		}
-		else if (saro[mid] < left)
-		{
-			low = mid + 1;
-		}
-		else 
-		{ }
-	}
-	return ok;
-}
-
+map<pair<int, int>, int> m;
+int a, b, c, d;
+int ans = 100000007;
 int main()
 {
-	cin >> M >> N >> L;
+	cin >> a >> b >> c >> d;
 
-	vector<long long> saro(M, 0);
-	vector<pair<long long, long long>> animals;
-	for (int i = 0; i < M; i++)
-		cin >> saro[i];
-
-	for (int i = 0; i < N; i++)
+	queue<pair<int, int>> q;
+	q.push(make_pair(0, 0));
+	m.insert(make_pair(make_pair(0, 0), 0));
+	bool ok = false;
+	int space = 0;
+	while (!q.empty())
 	{
-		long long x, y;
-		cin >> x >> y;
-		animals.push_back(make_pair(x, y));
-	}
+		int x = q.front().first;
+		int y = q.front().second;
+		q.pop();
+		int cnt = m[make_pair(x, y)];
 
-	sort(saro.begin(), saro.end());
-	int ans = 0;
-	for (int i = 0; i < N; i++)
-	{
-		long long x = animals[i].first;
-		long long y = animals[i].second;
-
-		if (L >= y)
+		for (int k = 0; k < 6; k++)
 		{
-			long long left = x - (L - y);
-			long long right = x + (L - y);
+			int nx, ny;
+			switch (k)
+			{
+			case 0: // F(A)
+				nx = a; ny = y;
+				break;
+			case 1: // F(B)
+				nx = x; ny = b;
+				break;
+			case 2: // E(A)
+				nx = 0; ny = y;
+				break;
+			case 3: // E(B)
+				nx = x; ny = 0;
+				break;
+			case 4: // M(A, B)
+				space = b - y;
+				if (space >= x)
+				{
+					nx = 0; ny = y + x;
+				}
+				else
+				{
+					nx = x - space; ny = b;
+				}
+				break;
+			case 5:
+				space = a - x;
+				if (space >= y)
+				{
+					nx = x + y; ny = 0;
+				}
+				else
+				{
+					nx = a; ny = y - space;
+				}
+				break;
+			}
 
-			bool ok = search(saro, left, right);
-			if (ok)
-				ans++;
+			if (m.count(make_pair(nx, ny)) == 0)
+			{
+				m.insert(make_pair(make_pair(nx, ny), cnt + 1));
+
+				if (nx == c && ny == d)
+				{
+					ok = true;
+					break;
+				}
+				q.push(make_pair(nx, ny));
+			}
 		}
+		if (ok)
+			break;
 	}
 
-	cout << ans << endl;
+	if (m.count(make_pair(c, d)) != 0)
+		cout << m[make_pair(c, d)] << endl;
+	else
+		cout << -1 << endl;
 	return 0;
 }
