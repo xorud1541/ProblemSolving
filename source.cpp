@@ -1,37 +1,122 @@
 #include <iostream>
 #include <vector>
+#include <string>
+#include <queue>
 using namespace std;
 
-int N;
+int N, M;
+char map[51][51];
+int dp[51][51];
+int dx[] = {-1, 0, 1, 0};
+int dy[] = {0, -1, 0, 1};
+
+string etc = "KAKTUS";
+
 int main()
 {
-	cin >> N;
-	vector< long long > pays(N, 0);
-	vector< long long > line(N - 1, 0);
+    cin >> N >> M;
+    vector<string> _map;
+    queue< pair<int, int> > nextwq;
+    int startX, startY;
+    int endX, endY;
+    for(int i=0; i<N; i++)
+    {
+        string s;
+        cin >> s;
+        _map.push_back(s);
+    }
 
-	for (int i = 0; i < N - 1; i++)
-	{
-		cin >> line[i];
-	}
+    for(int i=0; i<N; i++)
+    {
+        for(int j=0; j<M; j++)
+        {
+            map[i][j] = _map[i][j];
+            if(map[i][j] == 'D')
+            {
+                endX = i; endY = j;
+            }
+            else if(map[i][j] == 'S')
+            {
+                map[i][j] = '.';
+                startX = i; startY = j;
+            }
+            else if(map[i][j] == '*')
+            {
+                nextwq.push(make_pair(i, j));
+            }
+        }
+    }
 
-	for (int i = 0; i < N; i++)
-	{
-		cin >> pays[i];
-	}
+    queue< pair<int, int> > wq;
+    queue< pair<int, int> > emp;
 
-	long long min = pays[0];
-	long long ans = 0;
+    queue< pair<int, int> > q;
+    queue< pair<int, int> > nextq;
+    nextq.push(make_pair(startX, startY));
+    dp[startX][startY] = 0;
 
-	for (int i = 0; i < N-1; i++)
-	{
-		long long len = line[i];
-		long long pay = pays[i];
-		if (min > pay)
-			min = pay;
+    bool ok = false;
+    int ans = 0;
+    while (!nextq.empty())
+    {
+        wq = nextwq;
+        nextwq = emp;
+        while(!wq.empty())
+        {
+            int wx = wq.front().first;
+            int wy = wq.front().second;
+            wq.pop();
 
-		ans = ans + min * len;
-	}
+            for(int k=0; k<4; k++)
+            {
+                int wnx = wx + dx[k];
+                int wny = wy + dy[k];
+                if(wnx < 0 || wnx >= N || wny < 0 || wny >= M) continue;
 
-	cout << ans << endl;
-	return 0;
+                if(map[wnx][wny] == '.')
+                {
+                    map[wnx][wny] = '*';
+                    nextwq.push(make_pair(wnx, wny));
+                }
+            }
+        }
+
+        q = nextq;
+        nextq = emp;
+        while(!q.empty())
+        {
+            int x = q.front().first;
+            int y = q.front().second;
+            q.pop();
+
+            for(int k=0; k<4; k++)
+            {
+                int nx = x + dx[k];
+                int ny = y + dy[k];
+                if(nx < 0 || nx >= N || ny < 0 || ny >= M) continue;
+
+                if(map[nx][ny] == '.' && dp[nx][ny] == 0)
+                {
+                    dp[nx][ny] = dp[x][y] + 1;
+                    nextq.push(make_pair(nx, ny));
+                }
+
+                if(map[nx][ny] == 'D' && dp[nx][ny] == 0)
+                {
+                    ok = true;
+                    ans = dp[x][y] + 1;
+                }
+            }
+        }
+
+        if(ok)
+            break;
+    }
+
+    if(ans == 0)
+        cout << etc << endl;
+    else
+        cout << ans << endl;
+
+    return 0;
 }
