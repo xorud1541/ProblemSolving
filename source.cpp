@@ -119,5 +119,9 @@ int main()
         cout << ans << endl;
 
     return 0;
+<<<<<<< HEAD
 }
 //
+=======
+}
+>>>>>>> 4c8fb4ccc75c0a5433294a42cb31d9f1528400bf
