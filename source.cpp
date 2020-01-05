@@ -1,58 +1,53 @@
 #include <iostream>
 #include <vector>
-#include <cstring>
-#define MAX	101
+#include <algorithm>
+#define MAX		501
 using namespace std;
 
-int cache[MAX][MAX];
-int map[MAX][MAX];
-int N;
-bool go(int i, int j)
+int cache[MAX];
+
+int go(int x, vector<int>& arr)
 {
-	if (i >= N || j >= N)
-	{
-		return 0;
-	}
-
-	if (i == N - 1 && j == N - 1)
-	{
+	if (x == arr.size() - 1)
 		return 1;
-	}
 
-	int& ret = cache[i][j];
-	if (ret != -1)
+	int& ret = cache[x];
+	if (ret != 1)
 		return ret;
 
-	int jump = map[i][j];
-	int x = i + jump;
-	int y = j + jump;
+	for (int i = x + 1; i < arr.size(); i++)
+	{
+		int next = arr[i];
+		if (next > arr[x])
+		{
+			ret = max(ret, go(i, arr) + 1);
+		}
+	}
 
-	return ret = go(x, j) || go(i, y);
+	return ret;
 }
 
 int main()
 {
-	int C;
+	int C, N;
 	cin >> C;
 	for (int tc = 1; tc <= C; tc++)
 	{
-		memset(cache, -1, sizeof(cache));
-		//memset(map, 0, sizeof(map));
 		cin >> N;
-
+		vector<int> arr(N, 0);
 		for (int i = 0; i < N; i++)
 		{
-			for (int j = 0; j < N; j++)
-			{
-				scanf("%d", &map[i][j]);
-			}
+			cache[i] = 1;
+			cin >> arr[i];
 		}
 
-		if (go(0, 0))
-			cout << "YES" << '\n';
-		else
-			cout << "NO" << '\n';
-	}
+		int ans = 0;
+		for (int i = 0; i < N; i++)
+		{
+			ans = max(ans, go(i, arr));
+		}
 
+		cout << ans << endl;
+	}
 	return 0;
 }
