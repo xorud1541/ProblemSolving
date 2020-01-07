@@ -1,18 +1,45 @@
-// 소인수 분해 알고리즘
+#include <cstring>
+#include <math.h>
 #include <vector>
+#include <iostream>
 
+#define MAX		1000000007
 using namespace std;
 
-vector<int> factorSimple(int n)
+int n;
+bool isPrime[MAX + 1];
+
+void eratosthenes()
 {
-	vector<int> ret;
+	memset(isPrime, 1, sizeof(isPrime));
+	isPrime[0] = isPrime[1] = false;
 	int sqrtn = int(sqrt(n));
-	for(int div = 2; div <= sqrtn; ++div)
-		while (n % div == 0)
+	for (int i = 2; i <= sqrtn; ++i)
+	{
+		if (isPrime[i])
+			for (int j = i * i; j <= n; j += i)
+				isPrime[j] = false;
+	}
+}
+
+int n;
+vector<int> primes;
+vector<int> sumes;
+int main()
+{
+	cin >> n;
+	vector<bool> check(MAX, true);
+	for (int i = 2; i*i <= n; i++)
+	{
+		if (!check[i]) continue;
+		for (int j = i * i; j <= n; j += i)
 		{
-			n /= div;
-			ret.push_back(div);
+			check[j] = false;
 		}
-	if (n > 1) ret.push_back(n);
-	return ret;
+	}
+
+	for (int i = 2; i <= n; i++)
+	{
+		if (check[i]) primes.push_back(i);
+	}
 }
