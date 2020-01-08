@@ -1,45 +1,35 @@
-#include <cstring>
-#include <math.h>
-#include <vector>
 #include <iostream>
-
-#define MAX		1000000007
+#include <vector>
+#include <string>
+#define MIN     97
+#define MAX		123
 using namespace std;
 
-int n;
-bool isPrime[MAX + 1];
-
-void eratosthenes()
-{
-	memset(isPrime, 1, sizeof(isPrime));
-	isPrime[0] = isPrime[1] = false;
-	int sqrtn = int(sqrt(n));
-	for (int i = 2; i <= sqrtn; ++i)
-	{
-		if (isPrime[i])
-			for (int j = i * i; j <= n; j += i)
-				isPrime[j] = false;
-	}
-}
-
-int n;
-vector<int> primes;
-vector<int> sumes;
 int main()
 {
-	cin >> n;
-	vector<bool> check(MAX, true);
-	for (int i = 2; i*i <= n; i++)
+	int C;
+	cin >> C;
+	for (int tc = 1; tc <= C; tc++)
 	{
-		if (!check[i]) continue;
-		for (int j = i * i; j <= n; j += i)
+		vector<string> m[MAX][MAX];
+
+		int N;
+		cin >> N;
+		for (int i = 0; i < N; i++)
 		{
-			check[j] = false;
+			string s;
+			cin >> s;
+			int end_index = s.size() - 1;
+			m[s[0]][s[end_index]].push_back(s);
+		}
+
+		for (int i = MIN; i < MAX; i++)
+		{
+			for (int j = MIN; j < MAX; j++)
+			{
+
+			}
 		}
 	}
-
-	for (int i = 2; i <= n; i++)
-	{
-		if (check[i]) primes.push_back(i);
-	}
+	return 0;
 }
