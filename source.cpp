@@ -1,39 +1,32 @@
 #include <iostream>
 #include <vector>
-
+#include <string>
 using namespace std;
+
+string reverse(string::iterator& it)
+{
+	char head = *it;
+	++it;
+	if (head == 'b' || head == 'w')
+		return string(1, head);
+	string upperLeft = reverse(it);
+	string upperRight = reverse(it);
+	string lowerLeft = reverse(it);
+	string lowerRight = reverse(it);
+	return string("x") + lowerLeft + lowerRight + upperLeft + upperRight;
+}
 
 int main()
 {
-	int N;
-	cin >> N;
-	vector<pair<int, int>> v;
-	for (int i = 0; i < N; i++)
+	int T;
+	cin >> T;
+	while (T--)
 	{
-		int a, b;
-		cin >> a >> b;
-		v.push_back(make_pair(a, b));
+		string s;
+		cin >> s;
+
+		string::iterator iter = s.begin();
+		cout << reverse(iter) << endl;
 	}
-
-	vector<int> ans;
-	for (int i = 0; i < N; i++)
-	{
-		int x = v[i].first;
-		int y = v[i].second;
-
-		int k = 0;
-		for (int j = 0; j < N; j++)
-		{
-			if (i == j)
-				continue;
-
-			if (x < v[j].first && y < v[j].second)
-				k++;
-		}
-		ans.push_back(k + 1);
-	}
-
-	for (auto a : ans)
-		cout << a << endl;
 	return 0;
 }
