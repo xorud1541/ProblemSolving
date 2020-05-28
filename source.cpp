@@ -1,100 +1,77 @@
 #include <iostream>
 #include <vector>
-#include <tuple>
+#include <algorithm>
+
 using namespace std;
 
-tuple<int, int, int> solution(vector< vector<int> >& map, int x, int y, int N)
+int solution(vector<int>& vec, int left, int right)
 {
-	// 기저사례 조사
-	// N * N 면적에 같은 숫자로 구성되어 있는지?
-	int index = map[x][y];
-	bool isSame = true;
-	for (int i = x; i < x + N; i++)
+	int N = right - left + 1;
+	if (N == 1) // base case
 	{
-		for (int j = y; j < y + N; j++)
-		{
-			if (map[i][j] != index)
-			{
-				isSame = false;
-				break;
-			}
-		}
-		if (!isSame)
-			break;
-	}
-
-	if (isSame)
-	{
-		if (index == -1) return make_tuple(1, 0, 0);
-		else if (index == 0) return make_tuple(0, 1, 0);
-		else return make_tuple(0, 0, 1);
+		return vec[left];
 	}
 	else
 	{
-		int ans1 = 0;
-		int ans2 = 0;
-		int ans3 = 0;
-		int stride = N / 3;
-		for (int i = x; i < x + N; i = i + stride)
+		int mid = (right + left) / 2;
+		int ret = max(solution(vec, left, mid), solution(vec, mid + 1, right));
+
+		int l = mid;
+		int r = mid + 1;
+		int h = min(vec[l], vec[r]);
+		int w = 0;
+		while (1)
 		{
-			for (int j = y; j < y + N; j = j + stride)
+			w = r - l + 1;
+			int range = h * w;
+			ret = max(range, ret);
+
+			if (l > left && r < right)
 			{
-				int a, b, c;
-				tie(a, b, c) = solution(map, i, j, stride);
-				ans1 += a;
-				ans2 += b;
-				ans3 += c;
+				if (vec[l - 1] < vec[r + 1])
+				{
+					h = min(h, vec[r + 1]);
+					r++;
+				}
+				else
+				{
+					h = min(h, vec[l - 1]);
+					l--;
+				}
 			}
+			else if (l == left && r < right)
+			{
+				h = min(h, vec[r + 1]);
+				r++;
+			}
+			else if (l > left && r == right)
+			{
+				h = min(h, vec[l - 1]);
+				l--;
+			}
+			else
+				break;
 		}
 
-		return make_tuple(ans1, ans2, ans3);
+		return ret;
 	}
 }
 
 int main()
 {
-	int N;
-	cin >> N;
-
-	vector< vector<int> > map(N, vector<int>(N, 0));
-	for (int i = 0; i < N; i++)
+	int T;
+	cin >> T;
+	while (T--)
 	{
-		for (int j = 0; j < N; j++)
+		int N;
+		cin >> N;
+		vector<int> vec(N, 0);
+		for (int i = 0; i < N; i++)
 		{
-			cin >> map[i][j];
+			cin >> vec[i];
 		}
-	}
 
-	if (N == 1)
-	{
-		int index = map[0][0];
-		if (index == -1)
-		{
-			cout << 1 << endl;
-			cout << 0 << endl;
-			cout << 0 << endl;
-		}
-		else if (index == 0)
-		{
-			cout << 0 << endl;
-			cout << 1 << endl;
-			cout << 0 << endl;
-		}
-		else
-		{
-			cout << 0 << endl;
-			cout << 0 << endl;
-			cout << 1 << endl;
-		}
-	}
-	else
-	{
-		int a, b, c;
-		tie(a, b, c) = solution(map, 0, 0, N);
-
-		cout << a << endl;
-		cout << b << endl;
-		cout << c << endl;
+		cout << solution(vec, 0, N-1) << endl;
 	}
 	return 0;
 }
