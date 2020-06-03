@@ -1,128 +1,130 @@
 #include <iostream>
-#include <algorithm>
 #include <vector>
+#include <queue>
+#include <algorithm>
 using namespace std;
+int N;
+int answer;
+int dx[] = { -1, 0, 1, 0 };
+int dy[] = { 0, -1, 0, 1 };
+vector<pair<int, pair<int, int>>> Edge;
+vector<int> Parent;
 
-int keySize, lockSize, homeCnt;
-
-void rotate2(vector<vector<int>>& key)
+int Find_Parent(int A)
 {
-	int M = key[0].size();
-	vector< vector<int> > tmp(M, vector<int>(M));
-
-	for (int i = 0; i < M; i++)
-	{
-		for (int j = 0; j < M; j++)
-		{
-			tmp[i][j] = key[M - j - 1][i];
-		}
-	}
-
-	key = tmp;
+	if (A == Parent[A]) return A;
+	return Parent[A] = Find_Parent(Parent[A]);
 }
 
-bool isUnlock(int x, int y, vector<vector<int>>& map, vector<vector<int>>& key)
+void Union(int A, int B)
 {
-	int cnt = 0;
-	bool ok = true;
-	for (int i = 0; i < keySize; i++)
-	{
-		for (int j = 0; j < keySize; j++)
-		{
-			int keyValue = key[i][j];
-			int lockValue = map[x + i][y + j];
-
-			if (lockValue == -1)
-				continue;
-			else if (lockValue == 1 && keyValue == 1)
-				ok = false;
-			else if (lockValue == 0 && keyValue == 0)
-				ok = false;
-			else if (lockValue == 0 && keyValue == 0)
-				continue;
-			else if (lockValue == 1 && keyValue == 0)
-				continue;
-			else
-				cnt++;
-		}
-
-		if (!ok)
-			break;
-	}
-
-	if (!ok)
-		return false;
-	else
-	{
-		if (cnt == homeCnt)
-			return true;
-		else
-			return false;
-	}
+	A = Find_Parent(A);
+	B = Find_Parent(B);
+	Parent[B] = A;
 }
 
-bool search(vector<vector<int>>& map, vector<vector<int>>& key)
+bool Same_Parent(int A, int B)
 {
-	int x, y;
-	bool ok = false;
-	for (int i = 0; i < keySize + lockSize - 1; i++)
+	A = Find_Parent(A);
+	B = Find_Parent(B);
+	if (A == B) return true;
+	return false;
+}
+
+void Find_Group_Dis(vector< vector<int> >& land, vector< vector<int> >& map)
+{
+	for (int x = 0; x < land.size(); x++)
 	{
-		for (int j = 0; j < keySize + lockSize - 1; j++)
+		for (int y = 0; y < land.size(); y++)
 		{
-			x = i; y = j;
-			if (isUnlock(x, y, map, key))
+			for (int k = 0; k < 4; k++)
 			{
-				ok = true;
-				break;
+				int nx = x + dx[k];
+				int ny = y + dy[k];
+				if (nx >= 0 && ny >= 0 && nx < land.size() && ny < land.size())
+				{
+					if (map[x][y] != map[nx][ny])
+					{
+						Edge.push_back(make_pair(abs(land[x][y] - land[nx][ny]), make_pair(map[x][y], map[nx][ny])));
+					}
+				}
 			}
 		}
-		if (ok)
-			break;
 	}
-	return ok;
 }
 
-bool solution(vector<vector<int>> key, vector<vector<int>> lock) {
-	bool answer = true;
-	keySize = key[0].size();
-	lockSize = lock[0].size();
-	int mapSize = (2 * keySize) + lockSize - 2;
-	vector< vector<int> > map(mapSize, vector<int>(mapSize, -1));
-
-	for (int i = 0; i < lockSize; i++)
+void Kruskal(int group_cnt)
+{
+	Parent.resize(group_cnt);
+	sort(Edge.begin(), Edge.end());
+	for (int i = 0; i < group_cnt; i++) Parent[i] = i;
+	for (int i = 0; i < Edge.size(); i++)
 	{
-		for (int j = 0; j < lockSize; j++)
+		int N1 = Edge[i].second.first;
+		int N2 = Edge[i].second.second;
+		int cost = Edge[i].first;
+
+		if (Same_Parent(N1, N2) == false)
 		{
-			if (lock[i][j] == 0)
-				homeCnt++;
+			Union(N1, N2);
+			answer = answer + cost;
+		}
+	}
+}
+
+void grouping(int i, int j, int height, int group, vector< vector<int> >& map, vector< vector<int> >& land)
+{
+	map[i][j] = group;
+	queue<pair<int, int>> q;
+	q.push(make_pair(i, j));
+
+	while (!q.empty())
+	{
+		int x = q.front().first;
+		int y = q.front().second;
+		q.pop();
+
+		for (int k = 0; k < 4; k++)
+		{
+			int nx = x + dx[k];
+			int ny = y + dy[k];
+			if (nx < 0 || nx >= N || ny < 0 || ny >= N)
+				continue;
+
+			if (map[nx][ny] == 0)
+			{
+				int diff = abs(land[nx][ny] - land[x][y]);
+				if (diff > height)
+					continue;
+				else
+				{
+					q.push(make_pair(nx, ny));
+					map[nx][ny] = group;
+				}
+			}
+		}
+	}
+}
+
+int solution(vector<vector<int>> land, int height) {
+	N = land[0].size();
+	vector< vector<int> > map(N, vector<int>(N, 0));
+
+	int group = 1;
+	for (int i = 0; i < N; i++)
+	{
+		for (int j = 0; j < N; j++)
+		{
+			if (map[i][j] == 0)
+			{
+				grouping(i, j, height, group, map, land);
+				group++;
+			}
 		}
 	}
 
-	for (int i = keySize - 1; i < keySize - 1 + lockSize; i++)
-	{
-		for (int j = keySize - 1; j < keySize - 1 + lockSize; j++)
-		{
-			map[i][j] = lock[i - keySize + 1][j - keySize + 1];
-		}
-	}
+	Find_Group_Dis(land, map);
+	Kruskal(group);
 
-	if (search(map, key))
-		return true;
-
-	rotate2(key);
-
-	if (search(map, key))
-		return true;
-	
-	rotate2(key);
-
-	if (search(map, key))
-		return true;
-
-	rotate2(key);
-
-	if (search(map, key))
-		return true;
-
-	return false;
+	return answer;
 }
