@@ -1,50 +1,46 @@
 #include <iostream>
 #include <vector>
 #include <algorithm>
-
-#define MAX		1001
 using namespace std;
 
-int cache[MAX];
+const long long NEGINF = numeric_limits<long long>::min();
+int n, m, A[100], B[100];
+int cache[101][101];
 
-int solution(int N, vector<int>& arr)
+int jlis(int indexA, int indexB)
 {
-	int last = arr.size();
-	if (N == last - 1)
-	{
-		return 1;
-	}
+	int& ret = cache[indexA + 1][indexB + 1];
+	if (ret != -1) return ret;
 
-	int& ret = cache[N];
-	if (ret != 1)
-		return ret;
+	ret = 2;
+	long long a = (indexA == -1 ? NEGINF : A[indexA]);
+	long long b = (indexB == -1 ? NEGINF : B[indexB]);
+	long long maxElement = max(a, b);
 
-	int cur = arr[N];
-	for (int i = N + 1; i < last; i++)
-	{
-		int next = arr[i];
-		if (cur < next)
-		{
-			ret = max(ret, solution(i, arr) + 1);
-		}
-	}
+	for (int nextA = indexA + 1; nextA < n; nextA++)
+		if (maxElement < A[nextA])
+			ret = max(ret, jlis(nextA, indexB) + 1);
+	for (int nextB = indexB + 1; nextB < m; nextB++)
+		if (maxElement < B[nextB])
+			ret = max(ret, jlis(indexA, nextB) + 1);
 	return ret;
 }
 
 int main()
 {
-	int N;
-	int ans = 0;
-	cin >> N;
-	vector<int> arr(N, 0);
-	
-	for (int i = 0; i < N; i++) cache[i] = 1;
-	for (int i = 0; i < N; i++) cin >> arr[i];
-
-	for (int i = 0; i < N; i++)
+	int T;
+	cin >> T;
+	while (T--)
 	{
-		ans = max(ans, solution(i, arr));
+		cin >> n >> m;
+		memset(cache, -1, sizeof(int) * 101 * 101);
+		for (int i = 0; i < n; i++)
+			cin >> A[i];
+
+		for (int i = 0; i < m; i++)
+			cin >> B[i];
+
+		cout << jlis(-1, -1) - 2 << endl;
 	}
-	cout << ans << endl;
 	return 0;
 }
