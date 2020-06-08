@@ -1,30 +1,8 @@
 #include <iostream>
 #include <vector>
 #include <algorithm>
+#define MAX		10001
 using namespace std;
-
-const long long NEGINF = numeric_limits<long long>::min();
-int n, m, A[100], B[100];
-int cache[101][101];
-
-int jlis(int indexA, int indexB)
-{
-	int& ret = cache[indexA + 1][indexB + 1];
-	if (ret != -1) return ret;
-
-	ret = 2;
-	long long a = (indexA == -1 ? NEGINF : A[indexA]);
-	long long b = (indexB == -1 ? NEGINF : B[indexB]);
-	long long maxElement = max(a, b);
-
-	for (int nextA = indexA + 1; nextA < n; nextA++)
-		if (maxElement < A[nextA])
-			ret = max(ret, jlis(nextA, indexB) + 1);
-	for (int nextB = indexB + 1; nextB < m; nextB++)
-		if (maxElement < B[nextB])
-			ret = max(ret, jlis(indexA, nextB) + 1);
-	return ret;
-}
 
 int main()
 {
@@ -32,15 +10,29 @@ int main()
 	cin >> T;
 	while (T--)
 	{
-		cin >> n >> m;
-		memset(cache, -1, sizeof(int) * 101 * 101);
-		for (int i = 0; i < n; i++)
-			cin >> A[i];
+		int N;
+		cin >> N;
+		vector<int> e(N, 0);
+		vector<int> m(N, 0);
 
-		for (int i = 0; i < m; i++)
-			cin >> B[i];
+		for (int i = 0; i < N; i++) 
+			cin >> m[i];
+		for (int i = 0; i < N; i++) 
+			cin >> e[i];
 
-		cout << jlis(-1, -1) - 2 << endl;
+		vector<pair<int, int>> order;
+		for (int i = 0; i < N; i++)
+			order.push_back(make_pair(-e[i], i));
+
+		sort(order.begin(), order.end());
+		int ret = 0, beginEat = 0;
+		for (int i = 0; i < N; i++)
+		{
+			int box = order[i].second;
+			beginEat += m[box];
+			ret = max(ret, beginEat + e[box]);
+		}
+		cout << ret << endl;
 	}
 	return 0;
 }
