@@ -1,7 +1,7 @@
 #include <iostream>
 #include <vector>
-#include <algorithm>
-#define MAX		10001
+#include <queue>
+
 using namespace std;
 
 int main()
@@ -12,26 +12,26 @@ int main()
 	{
 		int N;
 		cin >> N;
-		vector<int> e(N, 0);
-		vector<int> m(N, 0);
-
-		for (int i = 0; i < N; i++) 
-			cin >> m[i];
-		for (int i = 0; i < N; i++) 
-			cin >> e[i];
-
-		vector<pair<int, int>> order;
-		for (int i = 0; i < N; i++)
-			order.push_back(make_pair(-e[i], i));
-
-		sort(order.begin(), order.end());
-		int ret = 0, beginEat = 0;
+		priority_queue<int, vector<int>, greater<int> > q;
 		for (int i = 0; i < N; i++)
 		{
-			int box = order[i].second;
-			beginEat += m[box];
-			ret = max(ret, beginEat + e[box]);
+			int num;
+			cin >> num;
+			q.push(num);
 		}
+
+		int ret = 0;
+		while (!q.empty())
+		{
+			int a = q.top(); q.pop();
+			int b = q.top(); q.pop();
+
+			ret += a + b;
+
+			if(!q.empty())
+				q.push(a + b);
+		}
+
 		cout << ret << endl;
 	}
 	return 0;
