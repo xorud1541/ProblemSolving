@@ -1,38 +1,40 @@
 #include <iostream>
 #include <vector>
-#include <queue>
-
+#include <string>
+#include <map>
+#define MAX		200001
 using namespace std;
+
+map<long long, long long> parent;
+
+long long find(long long x)
+{
+	if (parent[x] == 0)
+		return x;
+	else
+		return parent[x] = find(parent[x]);
+}
+
+
+vector<long long> solution(long long k, vector<long long> room_number) {
+	vector<long long> answer;
+
+	for (int i = 0; i < room_number.size(); i++)
+	{
+		long long idx = room_number[i];
+		long long p = find(idx);
+
+		answer.push_back(p);
+		parent[p] = p + 1;
+	}
+
+	return answer;
+}
 
 int main()
 {
-	int T;
-	cin >> T;
-	while (T--)
-	{
-		int N;
-		cin >> N;
-		priority_queue<int, vector<int>, greater<int> > q;
-		for (int i = 0; i < N; i++)
-		{
-			int num;
-			cin >> num;
-			q.push(num);
-		}
+	vector<long long> a = { 1, 3, 4, 1, 3, 1 };
 
-		int ret = 0;
-		while (!q.empty())
-		{
-			int a = q.top(); q.pop();
-			int b = q.top(); q.pop();
-
-			ret += a + b;
-
-			if(!q.empty())
-				q.push(a + b);
-		}
-
-		cout << ret << endl;
-	}
+	solution(10, a);
 	return 0;
 }
