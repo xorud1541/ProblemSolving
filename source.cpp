@@ -1,40 +1,91 @@
 #include <iostream>
 #include <vector>
 #include <string>
-#include <map>
-#define MAX		200001
+#include <set>
+#include <algorithm>
 using namespace std;
 
-map<long long, long long> parent;
+set<string> s;
+vector< vector<int> > indexs;
+vector<int> ret;
+int taken[9];
+int answer;
 
-long long find(long long x)
+bool isSame(string& a, string& b)
 {
-	if (parent[x] == 0)
-		return x;
+	if (a.size() == b.size())
+	{
+		for (int i = 0; i < a.size(); i++)
+		{
+			if (a[i] != '*' && a[i] != b[i])
+				return false;
+		}
+
+		return true;
+	}
 	else
-		return parent[x] = find(parent[x]);
+		return false;
 }
 
+void dfs(vector<string>& user_id, vector<string>& banned_id) {
+	int len = ret.size();
 
-vector<long long> solution(long long k, vector<long long> room_number) {
-	vector<long long> answer;
-
-	for (int i = 0; i < room_number.size(); i++)
+	if (len == indexs.size())
 	{
-		long long idx = room_number[i];
-		long long p = find(idx);
+		vector<int> vec = ret;
+		sort(vec.begin(), vec.end());
+		string tmp;
+		for (int i : vec)
+			tmp += i + '0';
 
-		answer.push_back(p);
-		parent[p] = p + 1;
+		s.insert(tmp);
+		return;
 	}
+
+	
+	vector<int> index = indexs[len];
+	for (int i : index)
+	{
+		if (!taken[i])
+		{
+			taken[i] = true;
+			ret.push_back(i);
+
+			dfs(user_id, banned_id);
+
+			ret.pop_back();
+			taken[i] = false;
+		}
+	}
+}
+
+int solution(vector<string> user_id, vector<string> banned_id) {
+
+	for (int i = 0; i < banned_id.size(); i++)
+	{
+		vector<int> a;
+		for (int j = 0; j < user_id.size(); j++)
+		{
+			if (isSame(banned_id[i], user_id[j]))
+			{
+				a.push_back(j);
+			}
+		}
+		indexs.push_back(a);
+	}
+
+	dfs(user_id, banned_id);
+
+	answer = s.size();
 
 	return answer;
 }
 
 int main()
 {
-	vector<long long> a = { 1, 3, 4, 1, 3, 1 };
+	vector<string> user = { "frodo", "fradi", "crodo", "abc123", "frodoc" };
+	vector<string> ban = { "fr*d*", "*rodo", "******", "******" };
 
-	solution(10, a);
+	int a = solution(user, ban);
 	return 0;
 }
