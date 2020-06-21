@@ -1,41 +1,37 @@
 #include <iostream>
 #include <vector>
-#include <algorithm>
+#define MAX		1001
+#define MOD		10007
+
 using namespace std;
 
+int cache[MAX][10];
 int main()
 {
-	int N, S, answer = 0;
-	cin >> N >> S;
-	vector<int> arr(N, 0);
-	for (int i = 0; i < N; i++)
-		cin >> arr[i];
+	int N;
+	cin >> N;
+	for (int i = 0; i < 10; i++)
+		cache[1][i] = 1;
 
-	for (int i = 1; i <= N; i++)
+	for (int i = 2; i <= N; i++)
 	{
-		vector<int> indexs(N, 0);
-		for (int j = 0; j < i; j++)
-			indexs[j] = 1;
-
-
-		do
+		for (int j = 0; j < 10; j++)
 		{
-			int sum = 0;
-			for (int i = 0; i < N; i++)
+			for (int k = j; k < 10; k++)
 			{
-				if (indexs[i])
-				{
-					sum += arr[i];
-				}
+				cache[i][j] += cache[i - 1][k] % MOD;
 			}
-
-			if (sum == S)
-				answer++;
-
-		} while (prev_permutation(indexs.begin(), indexs.end()));
-
+		}
 	}
 
-	cout << answer << "\n";
+	int ans = 0;
+	for (int i = 0; i < 10; i++)
+	{
+		ans += cache[N][i];
+		ans %= MOD;
+	}
+
+	cout << ans << endl;
 	return 0;
+
 }
