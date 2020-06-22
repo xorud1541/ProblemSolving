@@ -1,37 +1,48 @@
 #include <iostream>
 #include <vector>
+#include <algorithm>
 #define MAX		1001
-#define MOD		10007
 
 using namespace std;
 
-int cache[MAX][10];
-int main()
+int cache[MAX];
+int arr[MAX];
+int N;
+int go(int x)
 {
-	int N;
-	cin >> N;
-	for (int i = 0; i < 10; i++)
-		cache[1][i] = 1;
-
-	for (int i = 2; i <= N; i++)
+	if (x == N - 1)
 	{
-		for (int j = 0; j < 10; j++)
-		{
-			for (int k = j; k < 10; k++)
-			{
-				cache[i][j] += cache[i - 1][k] % MOD;
-			}
-		}
+		return arr[x];
 	}
 
-	int ans = 0;
-	for (int i = 0; i < 10; i++)
+	int& ret = cache[x];
+	if (ret != 0)
+		return ret;
+
+	int num = arr[x];
+	ret = num;
+	for (int i = x + 1; i < N; i++)
 	{
-		ans += cache[N][i];
-		ans %= MOD;
+		if(arr[i] > num)
+			ret = max(ret, num + go(i));
+	}
+	return ret;
+}
+
+int main()
+{
+	cin >> N;
+	
+	for (int i = 0; i < N; i++)
+		cin >> arr[i];
+
+	int ans = 0;
+	
+	for (int i = 0; i < N; i++)
+	{
+		ans = max(ans, go(i));
 	}
 
 	cout << ans << endl;
 	return 0;
-
 }
