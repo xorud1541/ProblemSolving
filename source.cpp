@@ -1,77 +1,104 @@
 #include <iostream>
-#include <vector>
+#include <cstring>
+#include <algorithm>
 #include <queue>
+
 using namespace std;
 
-int M, N, K;
-
+int n, m, Sx = -1, Sy, Ex, Ey;
+char map[1505][1505];
+bool check[1505][1505];
+int p[1505 * 1505];
 int dx[] = { -1, 0, 1, 0 };
 int dy[] = { 0, -1, 0, 1 };
 
-void check(vector< vector<bool> >& map, int x1, int y1, int x2, int y2)
-{
-	for (int i = x1; i <= x2; i++)
-	{
-		for (int j = y1; j <= y2; j++)
-		{
-			map[i][j] = true;
-		}
-	}
+bool inner(int x, int y) {
+	return (0 <= x && x < n && 0 <= y && y < m);
 }
 
-int dfs(vector <vector<bool> >& map, int x, int y)
+int find(int x)
 {
-	int ret = 0;
-	for (int k = 0; k < 4; k++)
-	{
-		int nx = x + dx[k];
-		int ny = y + dy[k];
-		if (nx < 0 || nx >= M || ny < 0 || ny >= N) continue;
+	if (p[x] == x)
+		return x;
+	return p[x] = find(p[x]);
+}
 
-		if (!map[nx][ny])
-		{
-			map[nx][ny] = true;
-			ret += dfs(map, nx, ny) + 1;
-		}
-	}
-	return ret;
+void merge(int x, int y)
+{
+	x = find(x);
+	y = find(y);
+	if (x == y)
+		return;
+	p[x] = y;
 }
 
 int main()
 {
-	cin >> M >> N >> K;
-	priority_queue<int, vector<int>, greater<int> > q;
-	vector< vector<bool> > map(M, vector<bool>(N, 0));
+	for (int i = 0; i < 1500 * 1500 + 2; i++)
+		p[i] = i;
 
-	for (int i = 0; i < K; i++)
+	scanf("%d %d", &n, &m);
+	queue<pair<int, int>> q;
+
+	for (int i = 0; i < n; i++)
 	{
-		int x1, y1, x2, y2;
-		cin >> x1 >> y1 >> x2 >> y2;
-
-		check(map, y1, x1, y2 - 1, x2 - 1);
-	}
-
-	for (int i = 0; i < M; i++)
-	{
-		for (int j = 0; j < N; j++)
+		for (int j = 0; j < m; j++)
 		{
-			if (!map[i][j])
+			scanf("%1c", &map[i][j]);
+			if (map[i][j] == 'X')
+				continue;
+			if (map[i][j] == 'L')
 			{
-				map[i][j] = true;
-				int ret = dfs(map, i, j) + 1;
-				q.push(ret);
+				if (Sx == -1)
+				{
+					Sx = i;
+					Sy = j;
+				}
+				else
+				{
+					Ex = i;
+					Ey = j;
+				}
+				map[i][j] = '.';
 			}
+
+			q.push({ i, j });
 		}
 	}
 
-	int cnt = q.size();
-	cout << cnt << "\n";
-	while (!q.empty())
+	int ans = 0;
+	while (int s = q.size())
 	{
-		int ans = q.top();
-		cout << ans << endl;
-		q.pop();
-	}
+		memset(check, 0, sizeof(check));
+		while (s--)
+		{
+			int x = q.front().first;
+			int y = q.front().second;
+			q.pop();
+			for (int i = 0; i < 4; i++)
+			{
+				int nx = x + dx[i];
+				int ny = y + dy[i];
+				if (!inner(nx, ny))
+					continue;
 
-	return 0;
+				if (map[nx][ny] == 'X')
+				{
+					q.push({ nx, ny });
+					check[nx][ny] = true;
+					map[nx][ny] = '.';
+				}
+				else
+				{
+					if (!check[nx][ny])
+						merge(find(x*m + y), find(nx*m + ny));
+				}
+			}
+		}
+		if (find(Sx*m + Sy) == find(Ex*m + Ey)) {
+			printf("%d\n", ans);
+			return 0;
+		}
+		ans++;
+	}
 }
